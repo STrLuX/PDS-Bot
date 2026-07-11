@@ -65,6 +65,12 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (pathname === '/status') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ready: isReady }));
+    return;
+  }
+
   if (pathname === '/qr') {
     if (latestQr) {
       res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
@@ -109,10 +115,6 @@ const server = http.createServer((req, res) => {
   res.end(linkingPage);
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`HTTP server listening on port ${PORT}`);
-});
-
 const client = new Client({
   authStrategy: new LocalAuth({
     dataPath: process.env.WWEBJS_AUTH_PATH || '.wwebjs_auth',
@@ -136,41 +138,7 @@ client.on('qr', (qr) => {
   latestQr = qr;
   isReady = false;
   console.log('Scan this QR code with your WhatsApp linked devices:');
-  qrcode.generate(qr, { small: true });
-});
-
-client.on('ready', () => {
-  latestQr = null;
-  isReady = true;
-  console.log('✅ PDS Bot is online and listening for messages!');
-});
-
-client.on('message', async (msg) => {
-  if (!msg.body || !msg.body.toLowerCase().startsWith('/tds ')) {
-    return;
-  }
-
-  const requestedMaterial = msg.body.split(' ').slice(1).join(' ');
-  const normalizedInput = requestedMaterial.toLowerCase().trim();
-
-  try {
-    const response = await axios.get(GIT_JSON_URL);
-    const materials = response.data;
-
-    const match = Object.entries(materials).find(([name]) => {
-      const normalizedName = name.toLowerCase().trim();
-      console.log(`Comparing: "${normalizedInput}" with "${normalizedName}"`);
-      return normalizedName === normalizedInput;
-    });
-
-    if (match) {
-      const [, link] = match;
-      msg.reply(`Here is the document for ${match[0]}:\n${link}`);
-    } else {
-      msg.reply(`Sorry, I couldn't find a file for "${requestedMaterial}". Please check the spelling and try again.`);
-    }
-  } catch (error) {
-    console.error('Database Error:', error.message);
+  qrcode.generate(qr, { small:.message);
     msg.reply('Oops! Having trouble reaching the document database right now.');
   }
 });
@@ -187,17 +155,21 @@ client.on('error', (error) => {
   console.error('Client error:', error);
 });
 
-// Initialize the client, but don't crash the server if it fails
-(async () => {
-  try {
-    console.log('Initializing WhatsApp client...');
-    await client.initialize();
-    console.log('WhatsApp client initialized successfully');
-  } catch (error) {
-    console.error('Failed to initialize WhatsApp client:', error.message);
-    console.log('Server will continue to run for health checks');
-  }
-})();
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`HTTP server listening on port ${PORT}`);
+
+  // Initialize the client, but don't crash the server if it fails
+  (async () => {
+    try {
+      console.log('Initializing WhatsApp client...');
+      await client.initialize();
+      console.log('WhatsApp client initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize WhatsApp client:', error.message);
+      console.log('Server will continue to run for health checks');
+    }
+  })();
+});
 
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down');
