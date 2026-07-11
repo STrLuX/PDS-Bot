@@ -4,8 +4,7 @@
   "description": "WhatsApp bot for retrieving product data sheets from GitHub-hosted JSON links",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "node test.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "axios": "^1.7.3",
