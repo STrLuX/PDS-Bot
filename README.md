@@ -22,5 +22,5 @@ For a production deployment, you should use a managed service and a persistent e
 ## Usage
 
 Send messages like:
-- `!get Terraco`
-- `!get FOSROC`
+- ``/tds Terraco``
+- ``/tds FOSROC``
