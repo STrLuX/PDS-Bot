@@ -1,42 +1,58 @@
 # syntax = docker/dockerfile:1
 
-ARG NODE_VERSION=22.21.1
-FROM node:${NODE_VERSION}-slim AS base
-
-LABEL fly_launch_runtime="Node.js"
+FROM node:22-bullseye-slim
 
 WORKDIR /app
 
-ENV NODE_ENV="production"
+ENV NODE_ENV="production" \
+    PORT="3000" \
+    CHROMIUM_PATH="/usr/bin/chromium"
 
-FROM base AS build
-
+# Install system dependencies for Chromium
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y \
-      build-essential \
-      node-gyp \
-      pkg-config \
-      python-is-python3 \
+    apt-get install -y \
       chromium \
-      chromium-common \
-      libnss3 \
-      libxss1 \
+      chromium-sandbox \
+      fonts-liberation \
       libappindicator1 \
-      libindicator7 \
-      libgconf-2-4 && \
+      libappindicator3-1 \
+      libatk-bridge2.0-0 \
+      libatk1.0-0 \
+      libatspi2.0-0 \
+      libcairo2 \
+      libcups2 \
+      libdbus-1-3 \
+      libexpat1 \
+      libgbm1 \
+      libglib2.0-0 \
+      libgtk-3-0 \
+      libnspr4 \
+      libnss3 \
+      libpango-1.0-0 \
+      libpangocairo-1.0-0 \
+      libx11-6 \
+      libx11-xcb1 \
+      libxcb1 \
+      libxcomposite1 \
+      libxcursor1 \
+      libxdamage1 \
+      libxext6 \
+      libxfixes3 \
+      libxi6 \
+      libxinerama1 \
+      libxrandr2 \
+      libxrender1 \
+      libxss1 \
+      libxtst6 && \
     rm -rf /var/lib/apt/lists/*
 
-COPY package-lock.json package.json ./
-RUN npm ci
+# Copy and install dependencies
+COPY package*.json ./
+RUN npm ci --production
 
+# Copy application code
 COPY . .
 
-FROM base
-
-COPY --from=build /app /app
-
-ENV PORT=3000
-ENV CHROMIUM_PATH=/usr/bin/chromium
-
 EXPOSE 3000
+
 CMD ["node", "index.js"]
