@@ -1,14 +1,19 @@
+# fly.toml app configuration file generated for pds-bot on 2026-07-11T13:41:19Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = 'pds-bot'
 primary_region = 'iad'
 
 [build]
 
 [env]
-  PORT = '3000'
   CHROMIUM_PATH = '/usr/bin/chromium'
+  PORT = '3000'
   WWEBJS_AUTH_PATH = '/data/.wwebjs_auth'
 
-[mounts]
+[[mounts]]
   source = 'pds_bot_data'
   destination = '/data'
 
@@ -20,12 +25,12 @@ primary_region = 'iad'
   min_machines_running = 1
   processes = ['app']
 
-[[http_service.checks]]
-  interval = '10s'
-  timeout = '10s'
-  grace_period = '60s'
-  method = 'GET'
-  path = '/health'
+  [[http_service.checks]]
+    interval = '10s'
+    timeout = '10s'
+    grace_period = '1m0s'
+    method = 'GET'
+    path = '/health'
 
 [[vm]]
   memory = '1gb'
