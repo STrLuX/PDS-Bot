@@ -12,7 +12,18 @@ ENV NODE_ENV="production"
 FROM base AS build
 
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3 chromium && \
+    apt-get install --no-install-recommends -y \
+      build-essential \
+      node-gyp \
+      pkg-config \
+      python-is-python3 \
+      chromium \
+      chromium-common \
+      libnss3 \
+      libxss1 \
+      libappindicator1 \
+      libindicator7 \
+      libgconf-2-4 && \
     rm -rf /var/lib/apt/lists/*
 
 COPY package-lock.json package.json ./

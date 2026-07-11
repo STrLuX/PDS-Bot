@@ -37,8 +37,17 @@ server.listen(PORT, '0.0.0.0', () => {
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
-    executablePath: process.env.CHROMIUM_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-web-resources',
+      '--no-first-run',
+      '--no-default-browser-check',
+    ],
   },
 });
 
@@ -82,9 +91,31 @@ client.on('auth_failure', (message) => {
   console.error('Authentication failed:', message);
 });
 
-client.initialize();
+client.on('disconnected', (reason) => {
+  console.log('Client disconnected:', reason);
+});
+
+client.on('error', (error) => {
+  console.error('Client error:', error);
+});
+
+// Initialize the client, but don't crash the server if it fails
+(async () => {
+  try {
+    console.log('Initializing WhatsApp client...');
+    await client.initialize();
+    console.log('WhatsApp client initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize WhatsApp client:', error.message);
+    console.log('Server will continue to run for health checks');
+  }
+})();
 
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down');
   server.close(() => process.exit(0));
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
