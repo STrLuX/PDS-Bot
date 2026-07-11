@@ -146,7 +146,7 @@ client.on('ready', () => {
 });
 
 client.on('message', async (msg) => {
-  if (!msg.body || !msg.body.toLowerCase().startsWith('!get ')) {
+  if (!msg.body || !msg.body.toLowerCase().startsWith('/tds ')) {
     return;
   }
 
